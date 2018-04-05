@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <algorithm>
-#include "image_ppm.h"
+#include "includes/image_ppm.h"
 
 int getMin(int v1, int v2, int v3, int v4) {
   int min = v1 ;
