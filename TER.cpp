@@ -28,23 +28,32 @@ int getMax(int v1, int v2, int v3, int v4) {
   return max ;
 }
 
-int getMediane(OCTET* img, int nW, int i, int j) {
-	int valeurs [9] = {
-		img[(i-1)*nW+j-1],
-		img[i*nW+j-1],
-		img[(i+1)*nW+j-1],
-		img[(i-1)*nW+j],
-		img[i*nW+j],
-		img[(i+1)*nW+j],
-		img[(i-1)*nW+j+1],
-		img[i*nW+j+1],
-		img[(i+1)*nW+j+1],
-	};
-	std::sort (valeurs, valeurs + 9);
-	return valeurs[4] ;
+int getMediane(OCTET* img, int nW, int i, int j, int sizeMat) {
+  std::vector<int> val;
+  for (int k = -sizeMat; k<sizeMat; k++) {
+    for (int l = -sizeMat; l<sizeMat; l++) {
+      val.push_back(img[(i+k)*nW+j+l]);
+    }
+  }
+  std::sort (val.begin(), val.end());
+  return val.at(val.size()/2);
+  // int valeurs [9] = {
+  //  img[(i-1)*nW+j-1],
+  //  img[i*nW+j-1],
+  //  img[(i+1)*nW+j-1],
+  //  img[(i-1)*nW+j],
+  //  img[i*nW+j],
+  //  img[(i+1)*nW+j],
+  //  img[(i-1)*nW+j+1],
+  //  img[i*nW+j+1],
+  //  img[(i+1)*nW+j+1],
+  // };
+  // std::sort (valeurs, valeurs + 9);
+  // return valeurs[4] ;
 }
 
-int getMoyenne(OCTET* img, int nW, int i, int j) {
+int getMoyenne(OCTET* img, int nW, int i, int j, int sizeMat) {
+
   int somme = 0 ;
   int valeurs [9] = {
     img[(i-1)*nW+j-1],
@@ -63,7 +72,7 @@ int getMoyenne(OCTET* img, int nW, int i, int j) {
   return somme / 9 ;
 }
 
-int getGauss(OCTET* img, int nW, int i, int j) {
+int getGauss(OCTET* img, int nW, int i, int j, int sizeMat) {
   int somme = 0 ;
   int valeurs [9] = {
     img[(i-1)*nW+j-1],
@@ -82,7 +91,7 @@ int getGauss(OCTET* img, int nW, int i, int j) {
   return somme / 16 ;
 }
 
-int passeHaut(OCTET* img, int nW, int i, int j) {
+int passeHaut(OCTET* img, int nW, int i, int j, int sizeMat) {
   int somme = 0 ;
   int valeurs [9] = {
     img[(i-1)*nW+j-1],
@@ -119,17 +128,18 @@ OCTET* erosion(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW) {
 
 int main(int argc, char* argv[]) {
   char cNomImgLue[250], cNomImgMedian[250], cNomImgBruit[250], cNomImgOut[250] ;
-  int nH, nW, nTaille ;
+  int nH, nW, nTaille, sizeMat ;
 
-  if (argc < 5) {
-    printf("Usage: ImageIn.pgm ImageMedianOut.pgm ImageBruitOut.pgm ImageOut.pgm\n"); 
+  if (argc < 6) {
+    printf("Usage: ImageIn.pgm ImageMedianOut.pgm ImageBruitOut.pgm ImageOut.pgm sizeMat (1 => 3*3, 2 = 5*5) \n"); 
     exit (1) ;
   }
 
   sscanf (argv[1],"%s",cNomImgLue) ;
   sscanf (argv[2],"%s",cNomImgMedian) ;
   sscanf (argv[3],"%s",cNomImgBruit) ;
-  sscanf (argv[4],"%s",cNomImgOut) ;
+  sscanf (argv[4],"%s",cNomImgOut);
+  sscanf (argv[5],"%d", &sizeMat);
 
   OCTET *ImgIn, *ImgInAug, *ImgBruit, *ImgMedian, *ImgOut;
 
@@ -144,24 +154,24 @@ int main(int argc, char* argv[]) {
   allocation_tableau(ImgOut, OCTET, nTaille);
 
   // Appliacation d'un filtre passe-haut pour augmenter le bruit de l'image d'entrée
-  for (int i = 1; i < nH - 1; i++) {
-    for (int j = 1; j < nW - 1; j++) {
-      ImgInAug[i*nW+j] = passeHaut(ImgIn, nW, i, j) ;
+  for (int i = sizeMat; i < nH - sizeMat; i++) {
+    for (int j = sizeMat; j < nW - sizeMat; j++) {
+      ImgInAug[i*nW+j] = passeHaut(ImgIn, nW, i, j, sizeMat) ;
     }
   }
 
   // Création d'une nouvelle image avec le filtre median, moyen ou gaussien -> ImgMedian
-  for (int i = 1; i < nH - 1; i++) {
-    for (int j = 1; j < nW - 1; j++) {
-      ImgMedian[i*nW+j] = getMediane(ImgIn, nW, i, j) ;
+  for (int i = sizeMat; i < nH - sizeMat; i++) {
+    for (int j = sizeMat; j < nW - sizeMat; j++) {
+      ImgMedian[i*nW+j] = getMediane(ImgIn, nW, i, j, sizeMat) ;
       // ImgMedian[i*nW+j] = getMoyenne(ImgIn, nW, i, j) ;
       // ImgMedian[i*nW+j] = getGauss(ImgIn, nW, i, j) ;
     }
   }
 
   // Isolation du bruit dans ImgBruit
-  for (int i = 1; i < nH - 1; i++) {
-    for (int j = 1; j < nW - 1; j++) {
+  for (int i = sizeMat; i < nH - sizeMat; i++) {
+    for (int j = sizeMat; j < nW - sizeMat; j++) {
       ImgBruit[i*nW+j] = abs(ImgInAug[i*nW+j] - ImgMedian[i*nW+j]) ;
     }
   }
@@ -171,8 +181,8 @@ int main(int argc, char* argv[]) {
   int bruitMin, bruitMax ;
   bruitMin = ImgBruit[nW+1];
   bruitMax = ImgBruit[nW+1];
-  for (int i = 1; i < nH - 1; i++) {
-		for (int j = 1; j < nW - 1; j++) {
+  for (int i = sizeMat; i < nH - sizeMat; i++) {
+		for (int j = sizeMat; j < nW - sizeMat; j++) {
   	  if (ImgBruit[i*nW+j] > bruitMax) {
   			bruitMax = ImgBruit[i*nW+j] ;
   	  }
@@ -182,8 +192,8 @@ int main(int argc, char* argv[]) {
   	}
   }
   // expansion dynamique
-  for (int i = 1; i < nH - 1; i++) {
-		for (int j = 1; j < nW - 1; j++) {
+  for (int i = sizeMat; i < nH - sizeMat; i++) {
+		for (int j = sizeMat; j < nW - sizeMat; j++) {
 			ImgBruit[i*nW+j] = (ImgBruit[i*nW+j] - bruitMin) * (255/(bruitMax-bruitMin)) ;
 		}
 	}
@@ -193,8 +203,8 @@ int main(int argc, char* argv[]) {
 	double bruitMoyen ;
 	somme = 0 ;
 	cpt = 0 ;
-	for (int i = 1; i < nH - 1; i++) {
-		for (int j = 1; j < nW - 1; j++) {
+	for (int i = sizeMat; i < nH - sizeMat; i++) {
+		for (int j = sizeMat; j < nW - sizeMat; j++) {
 			somme += ImgBruit[i*nW+j] ;
 			cpt ++ ;
 		}
@@ -211,8 +221,8 @@ int main(int argc, char* argv[]) {
 	if (bruitMoyen < 10) {
 		seuil = bruitMoyen / 2 + 1 ;
 	}
-	for (int i = 1; i < nH - 1; i++) {
-		for (int j = 1; j < nW - 1; j++) {
+	for (int i = sizeMat; i < nH - sizeMat; i++) {
+		for (int j = sizeMat; j < nW - sizeMat; j++) {
 			// Calcul du bruit moyen des n*n pixels voisins
 			sommePixelAdjacents = 0 ;
 			for (int k = -n; k <= n ; k++) {
