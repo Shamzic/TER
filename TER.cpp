@@ -1,3 +1,6 @@
+// c++ TER.cpp -o TER
+// ./TER imgIn.pgm imgMedian.pgm imgBruit.pgm imgOut.pgm
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <algorithm>
@@ -41,6 +44,61 @@ int getMediane(OCTET* img, int nW, int i, int j) {
 	return valeurs[4] ;
 }
 
+int getMoyenne(OCTET* img, int nW, int i, int j) {
+  int somme = 0 ;
+  int valeurs [9] = {
+    img[(i-1)*nW+j-1],
+    img[i*nW+j-1],
+    img[(i+1)*nW+j-1],
+    img[(i-1)*nW+j],
+    img[i*nW+j],
+    img[(i+1)*nW+j],
+    img[(i-1)*nW+j+1],
+    img[i*nW+j+1],
+    img[(i+1)*nW+j+1],
+  };
+  for (int i = 0 ; i < 9 ; i++) {
+    somme += valeurs[i] ;
+  }
+  return somme / 9 ;
+}
+
+int getGauss(OCTET* img, int nW, int i, int j) {
+  int somme = 0 ;
+  int valeurs [9] = {
+    img[(i-1)*nW+j-1],
+    img[i*nW+j-1],
+    img[(i+1)*nW+j-1],
+    img[(i-1)*nW+j],
+    img[i*nW+j],
+    img[(i+1)*nW+j],
+    img[(i-1)*nW+j+1],
+    img[i*nW+j+1],
+    img[(i+1)*nW+j+1],
+  };
+  somme = valeurs[0] + 2 * valeurs[1] + valeurs[2] 
+          + 2 * valeurs[3] + 4 * valeurs[4] + 2 * valeurs[5] 
+          + valeurs[6] + 2 * valeurs[7] + valeurs[8] ;
+  return somme / 16 ;
+}
+
+int passeHaut(OCTET* img, int nW, int i, int j) {
+  int somme = 0 ;
+  int valeurs [9] = {
+    img[(i-1)*nW+j-1],
+    img[i*nW+j-1],
+    img[(i+1)*nW+j-1],
+    img[(i-1)*nW+j],
+    img[i*nW+j],
+    img[(i+1)*nW+j],
+    img[(i-1)*nW+j+1],
+    img[i*nW+j+1],
+    img[(i+1)*nW+j+1],
+  };
+  somme = -valeurs[1] -valeurs[3] + 5*valeurs[4] -valeurs[5] -valeurs[7] ;
+  return somme ;
+}
+
 OCTET* dilatation(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW) {
   for (int i = 1 ; i < nH - 1 ; i++) {
     for (int j = 1 ; j < nW - 1 ; j++) {
@@ -73,28 +131,38 @@ int main(int argc, char* argv[]) {
   sscanf (argv[3],"%s",cNomImgBruit) ;
   sscanf (argv[4],"%s",cNomImgOut) ;
 
-  OCTET *ImgIn, *ImgBruit, *ImgMedian, *ImgOut;
+  OCTET *ImgIn, *ImgInAug, *ImgBruit, *ImgMedian, *ImgOut;
 
   lire_nb_lignes_colonnes_image_pgm(cNomImgLue, &nH, &nW);
   nTaille = nH * nW;
 
   allocation_tableau(ImgIn, OCTET, nTaille);
+  allocation_tableau(ImgInAug, OCTET, nTaille);
   lire_image_pgm(cNomImgLue, ImgIn, nH * nW);
   allocation_tableau(ImgBruit, OCTET, nTaille);
   allocation_tableau(ImgMedian, OCTET, nTaille);
   allocation_tableau(ImgOut, OCTET, nTaille);
 
-  // Création d'une nouvelle image ave le filtre median -> ImgMedian
+  // Appliacation d'un filtre passe-haut pour augmenter le bruit de l'image d'entrée
+  for (int i = 1; i < nH - 1; i++) {
+    for (int j = 1; j < nW - 1; j++) {
+      ImgInAug[i*nW+j] = passeHaut(ImgIn, nW, i, j) ;
+    }
+  }
+
+  // Création d'une nouvelle image avec le filtre median, moyen ou gaussien -> ImgMedian
   for (int i = 1; i < nH - 1; i++) {
     for (int j = 1; j < nW - 1; j++) {
       ImgMedian[i*nW+j] = getMediane(ImgIn, nW, i, j) ;
+      // ImgMedian[i*nW+j] = getMoyenne(ImgIn, nW, i, j) ;
+      // ImgMedian[i*nW+j] = getGauss(ImgIn, nW, i, j) ;
     }
   }
 
   // Isolation du bruit dans ImgBruit
   for (int i = 1; i < nH - 1; i++) {
     for (int j = 1; j < nW - 1; j++) {
-      ImgBruit[i*nW+j] = abs(ImgIn[i*nW+j] - ImgMedian[i*nW+j]) ;
+      ImgBruit[i*nW+j] = abs(ImgInAug[i*nW+j] - ImgMedian[i*nW+j]) ;
     }
   }
 
@@ -134,24 +202,25 @@ int main(int argc, char* argv[]) {
 	bruitMoyen = somme / cpt ;
 	
 	// Calcul de la différence entre le bruit moyen de l'image
-	// et le bruit moyen de chaque carré de 25 pixels dans ImgOut
+	// et le bruit moyen de chaque carré de (n*2 + 1)*(n*2 + 1) pixels dans ImgOut
 	// affichage du pixel en blanc si la différence est suppérieur au seuil
-	int seuil = 10 ;
+	int seuil = 20 ;
 	int sommePixelAdjacents = 0 ;
+  int n = 11 ;
 	double moyenneSommetsAdjacents ;
 	if (bruitMoyen < 10) {
 		seuil = bruitMoyen / 2 + 1 ;
 	}
 	for (int i = 1; i < nH - 1; i++) {
 		for (int j = 1; j < nW - 1; j++) {
-			// Calcul du bruit moyen des 25 pixels voisins
+			// Calcul du bruit moyen des n*n pixels voisins
 			sommePixelAdjacents = 0 ;
-			for (int k = -2; k <= 2 ; k++) {
-				for (int l = -2; l <= 2 ; l++) {
+			for (int k = -n; k <= n ; k++) {
+				for (int l = -n ; l <= n ; l++) {
 					sommePixelAdjacents += ImgBruit[(i+k)*nW+(j+l)] ;
 				}
 			}
-			moyenneSommetsAdjacents = sommePixelAdjacents / 25 ;
+			moyenneSommetsAdjacents = sommePixelAdjacents / ((n*2 + 1)*(n*2 + 1)) ;
 			// Affichage du pixel en blanc si le bruit moyen est supérieur au seuil
 			if (abs(bruitMoyen - moyenneSommetsAdjacents) > seuil) {
 				ImgOut[i*nW+j] = 255 ;
@@ -173,13 +242,11 @@ int main(int argc, char* argv[]) {
 
   // Enchainement de dilatations et erosions pour mettre en évidence les zones
   // avec des différences de bruit importantes
+
   ImgBruit = dilatation(ImgOut, ImgBruit, nH, nW) ;
   ImgOut = dilatation(ImgBruit, ImgOut, nH, nW) ;
   ImgBruit = dilatation(ImgOut, ImgBruit, nH, nW) ;
-  ImgOut = dilatation(ImgBruit, ImgOut, nH, nW) ;
-  ImgBruit = dilatation(ImgOut, ImgBruit, nH, nW) ;
-  ImgOut = dilatation(ImgBruit, ImgOut, nH, nW) ;
-  ImgBruit = dilatation(ImgOut, ImgBruit, nH, nW) ;
+
   ImgOut = erosion(ImgBruit, ImgOut, nH, nW) ;
   ImgBruit = erosion(ImgOut, ImgBruit, nH, nW) ;
   ImgOut = erosion(ImgBruit, ImgOut, nH, nW) ;
@@ -188,6 +255,7 @@ int main(int argc, char* argv[]) {
 
   // Libération des espaces mémoires
   free(ImgIn);
+  free(ImgInAug);
   free(ImgMedian);
   free(ImgBruit);
   free(ImgOut);
