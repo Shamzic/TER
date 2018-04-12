@@ -153,12 +153,33 @@ int main(int argc, char* argv[]) {
   allocation_tableau(ImgMedian, OCTET, nTaille);
   allocation_tableau(ImgOut, OCTET, nTaille);
 
+
+  //   int rayon = 150;
+  // for (int i = nH/2; i < nH/2 + rayon; i++) {
+  //   for (int j = nW/2; j < nW/2 + rayon; j++) {
+  //     ImgIn[i*nW+j] = passeHaut(ImgIn, nW, i, j, sizeMat) ;
+  //   }
+  // }
+
   // Appliacation d'un filtre passe-haut pour augmenter le bruit de l'image d'entrée
   for (int i = sizeMat; i < nH - sizeMat; i++) {
     for (int j = sizeMat; j < nW - sizeMat; j++) {
       ImgInAug[i*nW+j] = passeHaut(ImgIn, nW, i, j, sizeMat) ;
     }
   }
+  // Augmentation du bruit dans une certaine zone rayon*rayon
+
+  // int rayon = 150;
+  // for (int i = nH/2; i < nH/2 + rayon; i++) {
+  //   for (int j = nW/2; j < nW/2 + rayon; j++) {
+  //     ImgInAug[i*nW+j] = passeHaut(ImgInAug, nW, i, j, sizeMat) ;
+  //   }
+  // }
+  //   for (int i = nH/2; i < nH/2 + rayon; i++) {
+  //   for (int j = nW/2; j < nW/2 + rayon; j++) {
+  //     ImgInAug[i*nW+j] = passeHaut(ImgInAug, nW, i, j, sizeMat) ;
+  //   }
+  // }
 
   // Création d'une nouvelle image avec le filtre median, moyen ou gaussien -> ImgMedian
   for (int i = sizeMat; i < nH - sizeMat; i++) {
@@ -175,6 +196,15 @@ int main(int argc, char* argv[]) {
       ImgBruit[i*nW+j] = abs(ImgInAug[i*nW+j] - ImgMedian[i*nW+j]) ;
     }
   }
+
+
+/***********************************************/
+
+
+
+
+
+
 
   // Augmentation du bruit par expansion dynamique
   // recherche des min et max
@@ -214,7 +244,7 @@ int main(int argc, char* argv[]) {
 	// Calcul de la différence entre le bruit moyen de l'image
 	// et le bruit moyen de chaque carré de (n*2 + 1)*(n*2 + 1) pixels dans ImgOut
 	// affichage du pixel en blanc si la différence est suppérieur au seuil
-	int seuil = 20 ;
+	int seuil = bruitMoyen;
 	int sommePixelAdjacents = 0 ;
   int n = 11 ;
 	double moyenneSommetsAdjacents ;
@@ -249,9 +279,11 @@ int main(int argc, char* argv[]) {
   // Création des images
   ecrire_image_pgm(cNomImgMedian , ImgMedian,  nH, nW);
   ecrire_image_pgm(cNomImgBruit , ImgBruit,  nH, nW);
+  ecrire_image_pgm((char*)"./images/FILTRE_PASSE_HAUT.pgm" , ImgInAug,  nH, nW);
 
   // Enchainement de dilatations et erosions pour mettre en évidence les zones
   // avec des différences de bruit importantes
+
 
   ImgBruit = dilatation(ImgOut, ImgBruit, nH, nW) ;
   ImgOut = dilatation(ImgBruit, ImgOut, nH, nW) ;
