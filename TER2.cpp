@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
   }
   for (int i=0; i < nH; i++) {
     for (int j=0; j < nW; j++) {
-      histo[ImgIn[i*nW+j]] ++ ;
+      histo[ImgBruit[i*nW+j]] ++ ;
     }
   }
 
@@ -190,14 +190,13 @@ int main(int argc, char* argv[]) {
     f[i] = (double) histo[i] / nTaille ;
     somme += f[i] ;
   }
-  double densiteMoyenne = somme/256 ;
 	
 	// Calcul de la différence entre la densité de probabilité du bruit et 
 	// celle de chaque carré de (n*2 + 1)*(n*2 + 1) pixels dans ImgOut
 	// affichage du pixel en blanc si la différence est suppérieur au seuil
   int n = 15 ;
   int nTailleCarre = (n*2 + 1)*(n*2 + 1) ;
-  double seuil = 0.007  ;
+  double seuil = 0.005  ;
   double dif[256] ;
   double difMoyenne ;
 
@@ -209,7 +208,7 @@ int main(int argc, char* argv[]) {
       }
 			for (int k = -n; k <= n ; k++) {
 				for (int l = -n ; l <= n ; l++) {
-          histo2[ImgIn[(i+k)*nW+(j+l)]] ++ ;
+          histo2[ImgBruit[(i+k)*nW+(j+l)]] ++ ;
 				}
 			}
 
