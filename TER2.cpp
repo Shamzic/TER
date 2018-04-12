@@ -173,7 +173,6 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-
 	// Remplissage de l'histogramme global du bruit
   for (int i = 0; i < 256; ++i) {
     histo[i] = 0 ;
@@ -190,13 +189,21 @@ int main(int argc, char* argv[]) {
     f[i] = (double) histo[i] / nTaille ;
     somme += f[i] ;
   }
+  double densiteMoyenne = somme/256 ;
+
+  FILE* fichier = fopen("dpp.dat", "w+");
+  for (int i = 0; i < 256; ++i) {
+    fprintf(fichier, "%f\n", f[i]);
+  }
+  fclose(fichier);
 	
 	// Calcul de la différence entre la densité de probabilité du bruit et 
 	// celle de chaque carré de (n*2 + 1)*(n*2 + 1) pixels dans ImgOut
 	// affichage du pixel en blanc si la différence est suppérieur au seuil
   int n = 15 ;
   int nTailleCarre = (n*2 + 1)*(n*2 + 1) ;
-  double seuil = 0.005  ;
+  // double seuil = 0.002 ;
+  double seuil = densiteMoyenne/2 ;
   double dif[256] ;
   double difMoyenne ;
 
