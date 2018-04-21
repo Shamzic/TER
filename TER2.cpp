@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <algorithm>
-#include "image_ppm.h"
+#include "includes/image_ppm.h"
 
 int getMin(int v1, int v2, int v3, int v4) {
   int min = v1 ;
@@ -109,13 +109,13 @@ double absDouble(double n) {
 }
 
 int main(int argc, char* argv[]) {
-  char cNomImgLue[250], cNomImgMedian[250], cNomImgBruit[250], cNomImgOut[250] ;
+  char cNomImgLue[250], cNomImgMedian[250], cNomImgBruit[250], cNomImgOut[250], cNomImgInCarre[250] ;
   int nH, nW, nTaille ;
   int histo[256], histo2[256] ;
   double f[256], f2[256] ;
 
-  if (argc < 5) {
-    printf("Usage: ImageIn.pgm ImageMedianOut.pgm ImageBruitOut.pgm ImageOut.pgm\n"); 
+  if (argc < 6) {
+    printf("Usage: ImageIn.pgm ImageMedianOut.pgm ImageBruitOut.pgm ImageOut.pgm ImageInCarre.pgm\n"); 
     exit (1) ;
   }
 
@@ -123,8 +123,9 @@ int main(int argc, char* argv[]) {
   sscanf (argv[2],"%s",cNomImgMedian) ;
   sscanf (argv[3],"%s",cNomImgBruit) ;
   sscanf (argv[4],"%s",cNomImgOut) ;
+  sscanf (argv[5],"%s",cNomImgInCarre);
 
-  OCTET *ImgIn, *ImgBruit, *ImgMedian, *ImgOut;
+  OCTET *ImgIn, *ImgBruit, *ImgMedian, *ImgOut, *ImgInCarre;
 
   lire_nb_lignes_colonnes_image_pgm(cNomImgLue, &nH, &nW);
   nTaille = nH * nW;
@@ -134,6 +135,32 @@ int main(int argc, char* argv[]) {
   allocation_tableau(ImgBruit, OCTET, nTaille);
   allocation_tableau(ImgMedian, OCTET, nTaille);
   allocation_tableau(ImgOut, OCTET, nTaille);
+  allocation_tableau(ImgInCarre, OCTET, nTaille);
+
+
+
+ int rayon = 150;
+  for (int i = 0; i < nH; i++) {
+    for (int j = 0;  j < nW; j++) {
+      ImgInCarre[i*nW+j] = ImgIn[i*nW+j];
+    }
+  }
+  for (int i = nH/2; i < nH/2 + rayon; i++) {
+    for (int j = nW/2; j < nW/2 + rayon; j++) {
+      ImgInCarre[i*nW+j] = getGauss(ImgIn, nW, i, j) ;
+    }
+  }
+  for (int i = nH/2; i < nH/2 + rayon; i++) {
+    for (int j = nW/2; j < nW/2 + rayon; j++) {
+      ImgInCarre[i*nW+j] = getGauss(ImgInCarre, nW, i, j) ;
+    }
+  }
+  for (int i = nH/2; i < nH/2 + rayon; i++) {
+    for (int j = nW/2; j < nW/2 + rayon; j++) {
+      ImgInCarre[i*nW+j] = getGauss(ImgInCarre, nW, i, j) ;
+    }
+  }
+
 
   // Création d'une nouvelle image avec le filtre median, moyen ou gaussien -> ImgMedian
   for (int i = 1; i < nH - 1; i++) {
@@ -260,8 +287,11 @@ int main(int argc, char* argv[]) {
 
   ecrire_image_pgm(cNomImgOut , ImgOut,  nH, nW);
 
+  ecrire_image_pgm(cNomImgInCarre , ImgInCarre,  nH, nW);
+
   // Libération des espaces mémoires
   free(ImgIn);
+  free(ImgInCarre);
   free(ImgMedian);
   free(ImgBruit);
   free(ImgOut);
