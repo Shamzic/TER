@@ -1,5 +1,5 @@
 
-# Tâches a effectuer : 
+# Tâches à effectuer : 
 
 - Bruit gaussien, carré flouté
 
