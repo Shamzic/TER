@@ -1,4 +1,8 @@
 
+# Rapport 
+
+https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
+
 # Tâches à effectuer : 
 
 - Bruit gaussien, carré flouté
