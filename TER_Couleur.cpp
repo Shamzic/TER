@@ -29,7 +29,6 @@ int getMax(int v1, int v2, int v3, int v4) {
 }
 
 int getMedianeR(OCTET* img, int nW, int i, int j) {
-
 	int valeurs [9] = {
 		img[3*(i-1)*nW+3*(j-1)],
 		img[3*i*nW+3*(j-1)],
@@ -132,20 +131,37 @@ int main(int argc, char* argv[]) {
   allocation_tableau(ImgOut2, OCTET, nTaille);
 
   // Création d'une nouvelle image avec le filtre median, moyen ou gaussien -> ImgMedian
+  
+  // Pour ne pas confondre la texture et le bruit, 
+  // on considere que si la différence est supérieure à un certain seuil, 
+  // nous avons à faire à un contour, et on garde donc le pixel original.
+  int seuilContour = 5 ;
   for (int i = 1; i < nH - 1 ; i++) {
     for (int j = 1; j < nW - 1; j++) {
-      ImgMedian[3*i*nW+3*j] = getMedianeR(ImgIn, nW, i, j) ;
-      ImgMedian[3*i*nW+3*j+1] = getMedianeG(ImgIn, nW, i, j) ;
-      ImgMedian[3*i*nW+3*j+2] = getMedianeB(ImgIn, nW, i, j) ;
+      if (abs(ImgIn[3*i*nW+3*j] - getMedianeR(ImgIn, nW, i, j)) > seuilContour) {
+        ImgMedian[3*i*nW+3*j] = ImgIn[3*i*nW+3*j] ;
+      } else {
+        ImgMedian[3*i*nW+3*j] = getMedianeR(ImgIn, nW, i, j) ;
+      }
+      if (abs(ImgIn[3*i*nW+3*j+1] - getMedianeG(ImgIn, nW, i, j)) > seuilContour) {
+        ImgMedian[3*i*nW+3*j+1] = ImgIn[3*i*nW+3*j+1] ;
+      } else {
+        ImgMedian[3*i*nW+3*j+1] = getMedianeG(ImgIn, nW, i, j) ;
+      }
+      if (abs(ImgIn[3*i*nW+3*j+2] - getMedianeB(ImgIn, nW, i, j)) > seuilContour) {
+        ImgMedian[3*i*nW+3*j+2] = ImgIn[3*i*nW+3*j+2] ;
+      } else {
+        ImgMedian[3*i*nW+3*j+2] = getMedianeB(ImgIn, nW, i, j) ;
+      }
     }
   }
 
   // Isolation du bruit dans ImgBruit
   for (int i = 1; i < nH - 1 ; i++) {
     for (int j = 1; j < nW - 1; j++) {
-      ImgBruit[3*i*nW+3*j] = abs(ImgIn[3*i*nW+3*j] - ImgMedian[3*i*nW+3*j]) ;
-      ImgBruit[3*i*nW+3*j+1] = abs(ImgIn[3*i*nW+3*j+1] - ImgMedian[3*i*nW+3*j+1]) ;
-      ImgBruit[3*i*nW+3*j+2] = abs(ImgIn[3*i*nW+3*j+2] - ImgMedian[3*i*nW+3*j+2]) ;
+      ImgBruit[3*i*nW+3*j] = 128 + (ImgIn[3*i*nW+3*j] - ImgMedian[3*i*nW+3*j]) ;
+      ImgBruit[3*i*nW+3*j+1] = 128 + (ImgIn[3*i*nW+3*j+1] - ImgMedian[3*i*nW+3*j+1]) ;
+      ImgBruit[3*i*nW+3*j+2] = 128 + (ImgIn[3*i*nW+3*j+2] - ImgMedian[3*i*nW+3*j+2]) ;
     }
   }
 
@@ -233,7 +249,8 @@ int main(int argc, char* argv[]) {
 	// affichage du pixel en blanc si la différence est suppérieur au seuil
   int n = 15 ;
   int nTailleCarre = (n*2 + 1)*(n*2 + 1) ;
-  double seuil = 0.005 ;
+  double seuil = 0.0019 ;
+
   double difR[256], difG[256], difB[256] ;
   double difMoyenneR, difMoyenneG, difMoyenneB ;
   // double sommeR, sommeG, sommeB ;
@@ -278,7 +295,7 @@ int main(int argc, char* argv[]) {
       difMoyenneG = (double)sommeG/256 ;
       difMoyenneB = (double)sommeB/256 ;
 
-      sommeDifMoyennes = difMoyenneR + difMoyenneG + difMoyenneG ;
+      sommeDifMoyennes = difMoyenneR + difMoyenneG + difMoyenneB ;
 
 			// Affichage du pixel en blanc si la différence est supérieure au pourcentage du seuil
 			if (sommeDifMoyennes > seuil) {
