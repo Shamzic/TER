@@ -102,6 +102,14 @@ double absDouble(double n) {
   }
 }
 
+// Un pixel est considéré valide si 3 de ses composantes sont différents de 0 sur l'image bruit
+int pixelValide(int i, int j, OCTET *ImgBruit, int nW) {
+  if (ImgBruit[3*i*nW+3*j] > 0 && ImgBruit[3*i*nW+3*j+1] > 0 && ImgBruit[3*i*nW+3*j+2] > 0) 
+    return 1 ;
+  else 
+    return -1 ;
+}
+
 int main(int argc, char* argv[]) {
   char cNomImgLue[250], cNomImgMedian[250], cNomImgBruit[250], cNomImgOut[250] ;
   int nH, nW, nTaille ;
@@ -135,27 +143,69 @@ int main(int argc, char* argv[]) {
   // Pour ne pas confondre la texture et le bruit, 
   // on considere que si la différence est supérieure à un certain seuil, 
   // nous avons à faire à un contour, et on garde donc le pixel original.
-  int seuilContour = 5 ;
-  for (int i = 1; i < nH - 1 ; i++) {
-    for (int j = 1; j < nW - 1; j++) {
-      if (abs(ImgIn[3*i*nW+3*j] - getMedianeR(ImgIn, nW, i, j)) > seuilContour) {
-        ImgMedian[3*i*nW+3*j] = ImgIn[3*i*nW+3*j] ;
-      } else {
-        ImgMedian[3*i*nW+3*j] = getMedianeR(ImgIn, nW, i, j) ;
-      }
-      if (abs(ImgIn[3*i*nW+3*j+1] - getMedianeG(ImgIn, nW, i, j)) > seuilContour) {
-        ImgMedian[3*i*nW+3*j+1] = ImgIn[3*i*nW+3*j+1] ;
-      } else {
-        ImgMedian[3*i*nW+3*j+1] = getMedianeG(ImgIn, nW, i, j) ;
-      }
-      if (abs(ImgIn[3*i*nW+3*j+2] - getMedianeB(ImgIn, nW, i, j)) > seuilContour) {
-        ImgMedian[3*i*nW+3*j+2] = ImgIn[3*i*nW+3*j+2] ;
-      } else {
-        ImgMedian[3*i*nW+3*j+2] = getMedianeB(ImgIn, nW, i, j) ;
-      }
+
+  // Calcul du seuil pour chaque composante à partir du quel 
+  // on considère que la différence est due à de la texture et non du bruit
+  // Le seuil est égale à une fraction de l'écart type
+  
+  double moyenneR, moyenneG, moyenneB, ecartTypeR, ecartTypeG, ecartTypeB ;
+  int R = 0 ;
+  int G = 0 ;
+  int B = 0 ;
+  for (int i = 0; i < nH ; i++) {
+    for (int j = 0; j < nW ; j++) {
+      R += ImgIn[3*i*nW+3*j] ;
+      G += ImgIn[3*i*nW+3*j+1] ;
+      B += ImgIn[3*i*nW+3*j+2] ;
+    }
+  }
+  moyenneR = R / nTaille ;
+  moyenneG = G / nTaille ;
+  moyenneB = B / nTaille ;
+  R = 0 ;
+  G = 0 ;
+  B = 0 ;
+  for (int i = 0; i < nH ; i++) {
+    for (int j = 0; j < nW ; j++) {
+      R += abs(ImgIn[3*i*nW+3*j] - moyenneR) ;
+      G += abs(ImgIn[3*i*nW+3*j+1] - moyenneG) ;
+      B += abs(ImgIn[3*i*nW+3*j+2] - moyenneB) ;
     }
   }
 
+  ecartTypeR = (double) R / nTaille ;
+  ecartTypeG = (double) G / nTaille ;
+  ecartTypeB = (double) B / nTaille ;
+  int seuilTextureR = ecartTypeR / 8 ;
+  int seuilTextureG = ecartTypeG / 8 ;
+  int seuilTextureB = ecartTypeB / 8 ;
+
+  for (int i = 1; i < nH - 1 ; i++) {
+    for (int j = 1; j < nW - 1; j++) {
+      if (abs(ImgIn[3*i*nW+3*j] - getMedianeR(ImgIn, nW, i, j)) > seuilTextureR) {
+        ImgMedian[3*i*nW+3*j] = ImgIn[3*i*nW+3*j] ;
+        ImgBruit[3*i*nW+3*j] = 0 ;
+      } else {
+        ImgMedian[3*i*nW+3*j] = getMedianeR(ImgIn, nW, i, j) ;
+        ImgBruit[3*i*nW+3*j] = 128 + (ImgIn[3*i*nW+3*j] - ImgMedian[3*i*nW+3*j]) ;
+      }
+      if (abs(ImgIn[3*i*nW+3*j+1] - getMedianeG(ImgIn, nW, i, j)) > seuilTextureG) {
+        ImgMedian[3*i*nW+3*j+1] = ImgIn[3*i*nW+3*j+1] ;
+        ImgBruit[3*i*nW+3*j+1] = 0 ;
+      } else {
+        ImgMedian[3*i*nW+3*j+1] = getMedianeG(ImgIn, nW, i, j) ;
+        ImgBruit[3*i*nW+3*j+1] = 128 + (ImgIn[3*i*nW+3*j+1] - ImgMedian[3*i*nW+3*j+1]) ;
+      }
+      if (abs(ImgIn[3*i*nW+3*j+2] - getMedianeB(ImgIn, nW, i, j)) > seuilTextureB) {
+        ImgMedian[3*i*nW+3*j+2] = ImgIn[3*i*nW+3*j+2] ;
+        ImgBruit[3*i*nW+3*j+2] = 0 ;
+      } else {
+        ImgMedian[3*i*nW+3*j+2] = getMedianeB(ImgIn, nW, i, j) ;
+        ImgBruit[3*i*nW+3*j+2] = 128 + (ImgIn[3*i*nW+3*j+2] - ImgMedian[3*i*nW+3*j+2]) ;
+      }
+    }
+  }
+/*
   // Isolation du bruit dans ImgBruit
   for (int i = 1; i < nH - 1 ; i++) {
     for (int j = 1; j < nW - 1; j++) {
@@ -163,35 +213,41 @@ int main(int argc, char* argv[]) {
       ImgBruit[3*i*nW+3*j+1] = 128 + (ImgIn[3*i*nW+3*j+1] - ImgMedian[3*i*nW+3*j+1]) ;
       ImgBruit[3*i*nW+3*j+2] = 128 + (ImgIn[3*i*nW+3*j+2] - ImgMedian[3*i*nW+3*j+2]) ;
     }
-  }
+  }*/
 
-  // Augmentation du bruit par expansion dynamique
+  // Augmentation du bruit par expansion dynamique sans compter les pixels à 0
   // recherche des min et max
   int bruitMinR, bruitMaxR, bruitMinG, bruitMaxG, bruitMinB, bruitMaxB ;
-  bruitMinR = ImgBruit[3*(nW+1)];
+/*  bruitMinR = ImgBruit[3*(nW+1)];
   bruitMaxR = ImgBruit[3*(nW+1)];
   bruitMinG = ImgBruit[3*(nW+1)+1];
   bruitMaxG = ImgBruit[3*(nW+1)+1];
   bruitMinB = ImgBruit[3*(nW+1)+2];
-  bruitMaxB = ImgBruit[3*(nW+1)+2];
+  bruitMaxB = ImgBruit[3*(nW+1)+2];*/
+  bruitMinR = 128 ;
+  bruitMaxR = 128 ;
+  bruitMinG = 128 ;
+  bruitMaxG = 128 ;
+  bruitMinB = 128 ;
+  bruitMaxB = 128 ;
   for (int i = 1; i < nH - 1 ; i++) {
     for (int j = 1; j < nW - 1; j++) {
   	  if (ImgBruit[3*i*nW+3*j] > bruitMaxR) {
   			bruitMaxR = ImgBruit[3*i*nW+3*j] ;
   	  }
-  	  if (ImgBruit[3*i*nW+3*j] < bruitMinR) {
+  	  if (ImgBruit[3*i*nW+3*j] < bruitMinR && ImgBruit[3*i*nW+3*j] > 0) {
   			bruitMinR = ImgBruit[3*i*nW+3*j] ;
   	  }
       if (ImgBruit[3*i*nW+3*j+1] > bruitMaxG) {
         bruitMaxG = ImgBruit[3*i*nW+3*j+1] ;
       }
-      if (ImgBruit[3*i*nW+3*j+1] < bruitMinG) {
+      if (ImgBruit[3*i*nW+3*j+1] < bruitMinG && ImgBruit[3*i*nW+3*j+1] > 0) {
         bruitMinG = ImgBruit[3*i*nW+3*j+1] ;
       }
       if (ImgBruit[3*i*nW+3*j+2] > bruitMaxB) {
         bruitMaxB = ImgBruit[3*i*nW+3*j+2] ;
       }
-      if (ImgBruit[3*i*nW+3*j+2] < bruitMinB) {
+      if (ImgBruit[3*i*nW+3*j+2] < bruitMinB && ImgBruit[3*i*nW+3*j+2] > 0) {
         bruitMinB = ImgBruit[3*i*nW+3*j+2] ;
       }
   	}
@@ -199,9 +255,12 @@ int main(int argc, char* argv[]) {
   // expansion dynamique
   for (int i = 1; i < nH - 1; i++) {
     for (int j = 1; j < nW - 1; j++) {
-			ImgBruit[3*i*nW+3*j] = (ImgBruit[3*i*nW+3*j] - bruitMinR) * (255/(bruitMaxR-bruitMinR)) ;
-      ImgBruit[3*i*nW+3*j+1] = (ImgBruit[3*i*nW+3*j+1] - bruitMinG) * (255/(bruitMaxG-bruitMinG)) ;
-      ImgBruit[3*i*nW+3*j+2] = (ImgBruit[3*i*nW+3*j+2] - bruitMinB) * (255/(bruitMaxB-bruitMinB)) ;
+      if (ImgBruit[3*i*nW+3*j] != 0)
+        ImgBruit[3*i*nW+3*j] = (ImgBruit[3*i*nW+3*j] - bruitMinR) * (255/(bruitMaxR-bruitMinR)) ;
+      if (ImgBruit[3*i*nW+3*j+1] != 0)
+        ImgBruit[3*i*nW+3*j+1] = (ImgBruit[3*i*nW+3*j+1] - bruitMinG) * (255/(bruitMaxG-bruitMinG)) ;
+      if (ImgBruit[3*i*nW+3*j+2] != 0)
+        ImgBruit[3*i*nW+3*j+2] = (ImgBruit[3*i*nW+3*j+2] - bruitMinB) * (255/(bruitMaxB-bruitMinB)) ;
 		}
 	}
 
@@ -224,7 +283,7 @@ int main(int argc, char* argv[]) {
   sommeR = 0 ;
   sommeG = 0 ;
   sommeB = 0 ;
-  for (int i = 0; i < 256; ++i) {
+  for (int i = 1; i < 256; ++i) {
     fR[i] = (double) histoR[i] / nTaille ;
     sommeR += fR[i] ;
     fG[i] = (double) histoG[i] / nTaille ;
@@ -233,13 +292,19 @@ int main(int argc, char* argv[]) {
     sommeB += fB[i] ;
 
   }
-  densiteMoyenneR = sommeR / 256 ;
-  densiteMoyenneG = sommeG / 256 ;
-  densiteMoyenneB = sommeB / 256 ;
+  densiteMoyenneR = sommeR / 255 ;
+  densiteMoyenneG = sommeG / 255 ;
+  densiteMoyenneB = sommeB / 255 ;
 
   FILE* fichier = fopen("dpp.dat", "w+");
   for (int i = 0; i < 256; ++i) {
     fprintf(fichier, "%f %f %f\n", fR[i], fG[i], fB[i]);
+  }
+  fclose(fichier);
+
+  fichier = fopen("histo.dat", "w+");
+  for (int i = 0; i < 256; ++i) {
+    fprintf(fichier, "%d %d %d\n", histoR[i], histoG[i], histoB[i]);
   }
   fclose(fichier);
 
@@ -249,11 +314,10 @@ int main(int argc, char* argv[]) {
 	// affichage du pixel en blanc si la différence est suppérieur au seuil
   int n = 15 ;
   int nTailleCarre = (n*2 + 1)*(n*2 + 1) ;
-  double seuil = 0.0019 ;
+  double seuil = 0.0017 ;
 
   double difR[256], difG[256], difB[256] ;
   double difMoyenneR, difMoyenneG, difMoyenneB ;
-  // double sommeR, sommeG, sommeB ;
   double sommeDifMoyennes ;
 
 	for (int i = n; i < nH - n; i++) {
@@ -273,7 +337,7 @@ int main(int argc, char* argv[]) {
 			}
 
       // Calcul de la densité de probabilité locale
-			for (int k = 0; k < 256; k++) {
+			for (int k = 1; k < 256; k++) {
         f2R[k] = (double) histo2R[k] / nTailleCarre ;
         f2G[k] = (double) histo2G[k] / nTailleCarre ;
         f2B[k] = (double) histo2B[k] / nTailleCarre ;
@@ -283,7 +347,7 @@ int main(int argc, char* argv[]) {
       sommeR = 0 ;
       sommeG = 0 ;
       sommeB = 0 ;
-      for (int k = 0 ; k < 256 ; k++ ) {
+      for (int k = 1 ; k < 256 ; k++ ) {
         difR[k] = absDouble(fR[k] - f2R[k]);
         sommeR += difR[k] ;
         difG[k] = absDouble(fG[k] - f2G[k]);
@@ -291,14 +355,14 @@ int main(int argc, char* argv[]) {
         difB[k] = absDouble(fB[k] - f2B[k]);
         sommeB += difB[k] ;
       }
-      difMoyenneR = (double)sommeR/256 ;
-      difMoyenneG = (double)sommeG/256 ;
-      difMoyenneB = (double)sommeB/256 ;
+      difMoyenneR = (double)sommeR/255 ;
+      difMoyenneG = (double)sommeG/255 ;
+      difMoyenneB = (double)sommeB/255 ;
 
       sommeDifMoyennes = difMoyenneR + difMoyenneG + difMoyenneB ;
 
 			// Affichage du pixel en blanc si la différence est supérieure au pourcentage du seuil
-			if (sommeDifMoyennes > seuil) {
+			if (sommeDifMoyennes > seuil && pixelValide(i, j, ImgBruit, nW) == 1) {
 				ImgOut[i*nW+j] = 255 ;
 			} else {
 				ImgOut[i*nW+j] = 0 ;
@@ -317,6 +381,30 @@ int main(int argc, char* argv[]) {
   ImgOut2 = dilatation(ImgOut, ImgOut2, nH, nW) ;
   ImgOut = dilatation(ImgOut2, ImgOut, nH, nW) ;
   ImgOut2 = dilatation(ImgOut, ImgOut2, nH, nW) ;
+
+  ImgOut = erosion(ImgOut2, ImgOut, nH, nW) ;
+  ImgOut2 = erosion(ImgOut, ImgOut2, nH, nW) ;
+  ImgOut = erosion(ImgOut2, ImgOut, nH, nW) ;
+
+  ImgOut2 = erosion(ImgOut, ImgOut2, nH, nW) ;
+  ImgOut = erosion(ImgOut2, ImgOut, nH, nW) ;
+  ImgOut2 = erosion(ImgOut, ImgOut2, nH, nW) ;
+
+  ImgOut = dilatation(ImgOut2, ImgOut, nH, nW) ;
+  ImgOut2 = dilatation(ImgOut, ImgOut2, nH, nW) ;
+  ImgOut = dilatation(ImgOut2, ImgOut, nH, nW) ;
+
+  ImgOut2 = dilatation(ImgOut, ImgOut2, nH, nW) ;
+  ImgOut = dilatation(ImgOut2, ImgOut, nH, nW) ;
+  ImgOut2 = dilatation(ImgOut, ImgOut2, nH, nW) ;
+
+  ImgOut = dilatation(ImgOut2, ImgOut, nH, nW) ;
+  ImgOut2 = dilatation(ImgOut, ImgOut2, nH, nW) ;
+  ImgOut = dilatation(ImgOut2, ImgOut, nH, nW) ;
+
+  ImgOut2 = erosion(ImgOut, ImgOut2, nH, nW) ;
+  ImgOut = erosion(ImgOut2, ImgOut, nH, nW) ;
+  ImgOut2 = erosion(ImgOut, ImgOut2, nH, nW) ;
 
   ImgOut = erosion(ImgOut2, ImgOut, nH, nW) ;
   ImgOut2 = erosion(ImgOut, ImgOut2, nH, nW) ;
