@@ -3,13 +3,13 @@
 
 https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 
-# Tâches à effectuer : 
+# Tâches developpement : 
 
-- Bruit gaussien, carré flouté
+- Faire une base d'image + faire une vérité de terrain + faire une courbe ROC + prendre d'autres images
 
-- Pondérer différences histogramme ?
+- Faire ouverture/fermeture sur le programme des patchs
 
-- Faire une base d'image + faire une vérité de terrain + faire une courbe ROC + prendre d'autres iamges
+- Tester extraction du bruit avec moyenne
 
 # Tâches rapport : 
 
