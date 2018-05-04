@@ -15,9 +15,11 @@ https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 - Regarder date Latex -> Dans format.tex  \rfoot[] on peut mettre autre chose si vous voulez
 
 - Partie 2
-	- Rajouter des trucs dans la partie Image falsifiée numériquement
+	- Rajouter des trucs dans la partie Image falsifiée numériquement *=> A compléter? #Simon : partie mise à jour le 04/05*
 
-	- Ajouter des exemples pour copier-deplacer et copier-créer
+	- Ajouter des exemples pour copier-deplacer *=> OK #Simon : partie mise à jour le 04/05*
+	
+	- Ajouter des exemples pour copier-créer
 
 	- Comprendre la partie 2.3.1 / Relire le cours de Strauss
 
