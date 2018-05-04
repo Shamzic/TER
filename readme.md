@@ -19,7 +19,7 @@ https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 
 	- Ajouter des exemples pour copier-deplacer *=> OK #Simon : partie mise à jour le 04/05*
 	
-	- Ajouter des exemples pour copier-créer
+	- Ajouter des exemples pour copier-créer *=> OK #Simon : partie mise à jour le 04/05*
 
 	- Comprendre la partie 2.3.1 / Relire le cours de Strauss
 
