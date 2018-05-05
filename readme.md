@@ -37,19 +37,19 @@ https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 
 
 - Partie 3
-	- 3.2.1 Bruit d'une image
+	- 3.2.1 Bruit d'une image => OK #Nico 
 	
-	- Explication filtre median et moyenne vite fait et gaussien
+	- Explication filtre median et moyenne vite fait et gaussien => J'ai pas parlé du gaussien je sais pas trop quoi en dire
 	
-	- 3.2.2 Noir et blanc
+	- 3.2.2 Noir et blanc => OK #Nico Il manque les screens
 	
-	- 3.2.3 Couleur
+	- 3.2.3 Couleur => OK #Nico Il manque les screens
 	
 	- 3.2.4 Patch
 	
-	- 3.2.5 Courbe ROC
+	- 3.2.5 Courbe ROC  => OK #Nico Il manque les screens
 	
-	- 3.2.6 Amélioration de l'analyse du bruit
+	- 3.2.6 Amélioration de l'analyse du bruit => OK #Nico Il manque les screens
 	
 	
 - Partie 4
