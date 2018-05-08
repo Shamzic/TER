@@ -57,11 +57,11 @@ https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 
 
 - Partie 5
-	- Revoir la partie organisation -> A Walidey [Tristan]
+	- Revoir la partie organisation -> Modifié à valider #Tristan
 	
-	- Mettre un screen OpenProj -> C'est flou
+	- Mettre un screen OpenProj -> Suppression du screen OpenProj pour un diagramme de gantt #Tristan
 
 - Partie 6
 	- Bilan technique
 	
-	- Bilan humain
+	- Bilan humain -> OK #Tristan
