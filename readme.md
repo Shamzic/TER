@@ -31,4 +31,6 @@ https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 		
 	- rajouter les résultats obtenus
 	
-RENOMMER LE PROJET EN DAB
+RENOMMER LE PROJET EN DAB : DONE
+
+Mettre une image falsifiée avec un DAB dans l'espace et l'image binaire full noire
