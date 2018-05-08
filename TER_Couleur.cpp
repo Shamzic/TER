@@ -176,9 +176,13 @@ int main(int argc, char* argv[]) {
   ecartTypeR = (double) R / nTaille ;
   ecartTypeG = (double) G / nTaille ;
   ecartTypeB = (double) B / nTaille ;
-  int seuilTextureR = ecartTypeR / 8 ;
-  int seuilTextureG = ecartTypeG / 8 ;
-  int seuilTextureB = ecartTypeB / 8 ;
+  /*int seuilTextureR = ecartTypeR / 6 ;
+  int seuilTextureG = ecartTypeG / 6 ;
+  int seuilTextureB = ecartTypeB / 6 ;*/
+
+  int seuilTextureR = 5000 ;
+  int seuilTextureG = 5000 ;
+  int seuilTextureB = 5000 ;
 
   for (int i = 1; i < nH - 1 ; i++) {
     for (int j = 1; j < nW - 1; j++) {
@@ -314,7 +318,7 @@ int main(int argc, char* argv[]) {
 	// affichage du pixel en blanc si la différence est suppérieur au seuil
   int n = 15 ;
   int nTailleCarre = (n*2 + 1)*(n*2 + 1) ;
-  double seuil = 0.0017 ;
+  double seuil = 0.00175 ;
 
   double difR[256], difG[256], difB[256] ;
   double difMoyenneR, difMoyenneG, difMoyenneB ;
