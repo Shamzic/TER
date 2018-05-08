@@ -30,3 +30,5 @@ https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 - Partie 6
 		
 	- rajouter les résultats obtenus
+	
+RENOMMER LE PROJET EN DAB
