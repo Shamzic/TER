@@ -16,8 +16,7 @@ https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 
 - Partie 2
 
-	- Comprendre la partie 2.3.1 / Relire le cours de Strauss -> Koussi koussa relire sur 2.3
-
+	- Comprendre la partie 2.3 
 
 - Partie 3
 
@@ -25,10 +24,9 @@ https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 	
 	- Détailler/Interpreter la courbe ROC
 	
-	- PLus interpréter les résultats
+	- Plus interpréter les résultats
 
 
 - Partie 6
-	- Bilan technique
-	
-	- Bilan humain -> OK #Tristan
+		
+	- rajouter les résultats obtenus
