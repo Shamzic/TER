@@ -20,9 +20,9 @@ https://fr.sharelatex.com/project/57db9f3c7c5f29b427eb3b97
 
 - Partie 3
 
-	- Rajouter code de l'amélioration de la détéction du bruit
+	- Rajouter code de l'amélioration de la détéction du bruit -> OK
 	
-	- Détailler/Interpreter la courbe ROC
+	- Détailler/Interpreter la courbe ROC -> OK
 	
 	- Plus interpréter les résultats
 
