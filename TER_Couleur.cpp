@@ -111,13 +111,13 @@ int pixelValide(int i, int j, OCTET *ImgBruit, int nW) {
 }
 
 int main(int argc, char* argv[]) {
-  char cNomImgLue[250], cNomImgMedian[250], cNomImgBruit[250], cNomImgOut[250] ;
+  char cNomImgLue[250], cNomImgMedian[250], cNomImgBruit[250], cNomImgOut[250], cNomImgChaleur[250] ;
   int nH, nW, nTaille ;
   int histoR[256], histoG[256], histoB[256], histo2R[256], histo2G[256], histo2B[256] ;
   double fR[256], fG[256], fB[256], f2R[256], f2G[256], f2B[256] ;
 
   if (argc < 5) {
-    printf("Usage: ImageIn.ppm ImageMedianOut.ppm ImageBruitOut.ppm ImageOut.pgm\n"); 
+    printf("Usage: ImageIn.ppm ImageMedianOut.ppm ImageBruitOut.ppm ImageOut.pgm ImageChaleur.pgm\n"); 
     exit (1) ;
   }
 
@@ -125,8 +125,10 @@ int main(int argc, char* argv[]) {
   sscanf (argv[2],"%s",cNomImgMedian) ;
   sscanf (argv[3],"%s",cNomImgBruit) ;
   sscanf (argv[4],"%s",cNomImgOut) ;
+  sscanf (argv[5],"%s",cNomImgChaleur) ;
 
-  OCTET *ImgIn, *ImgBruit, *ImgMedian, *ImgOut, *ImgOut2;
+
+  OCTET *ImgIn, *ImgBruit, *ImgMedian, *ImgOut, *ImgOut2, *ImgChaleur;
 
   lire_nb_lignes_colonnes_image_ppm(cNomImgLue, &nH, &nW);
   nTaille = nH * nW;
@@ -137,6 +139,8 @@ int main(int argc, char* argv[]) {
   allocation_tableau(ImgMedian, OCTET, 3*nTaille);
   allocation_tableau(ImgOut, OCTET, nTaille);
   allocation_tableau(ImgOut2, OCTET, nTaille);
+  allocation_tableau(ImgChaleur, OCTET, nTaille);
+
 
   // Création d'une nouvelle image avec le filtre median, moyen ou gaussien -> ImgMedian
   
@@ -176,13 +180,14 @@ int main(int argc, char* argv[]) {
   ecartTypeR = (double) R / nTaille ;
   ecartTypeG = (double) G / nTaille ;
   ecartTypeB = (double) B / nTaille ;
-  /*int seuilTextureR = ecartTypeR / 6 ;
-  int seuilTextureG = ecartTypeG / 6 ;
-  int seuilTextureB = ecartTypeB / 6 ;*/
 
-  int seuilTextureR = 5000 ;
-  int seuilTextureG = 5000 ;
-  int seuilTextureB = 5000 ;
+  int seuilTextureR = ecartTypeR / 6 ;
+  int seuilTextureG = ecartTypeG / 6 ;
+  int seuilTextureB = ecartTypeB / 6 ;
+
+/*  int seuilTextureR = 256 ;
+  int seuilTextureG = 256 ;
+  int seuilTextureB = 256 ;*/
 
   for (int i = 1; i < nH - 1 ; i++) {
     for (int j = 1; j < nW - 1; j++) {
@@ -209,8 +214,8 @@ int main(int argc, char* argv[]) {
       }
     }
   }
-/*
-  // Isolation du bruit dans ImgBruit
+
+/*  // Isolation du bruit dans ImgBruit
   for (int i = 1; i < nH - 1 ; i++) {
     for (int j = 1; j < nW - 1; j++) {
       ImgBruit[3*i*nW+3*j] = 128 + (ImgIn[3*i*nW+3*j] - ImgMedian[3*i*nW+3*j]) ;
@@ -218,6 +223,7 @@ int main(int argc, char* argv[]) {
       ImgBruit[3*i*nW+3*j+2] = 128 + (ImgIn[3*i*nW+3*j+2] - ImgMedian[3*i*nW+3*j+2]) ;
     }
   }*/
+    
 
   // Augmentation du bruit par expansion dynamique sans compter les pixels à 0
   // recherche des min et max
@@ -256,6 +262,7 @@ int main(int argc, char* argv[]) {
       }
   	}
   }
+
   // expansion dynamique
   for (int i = 1; i < nH - 1; i++) {
     for (int j = 1; j < nW - 1; j++) {
@@ -318,11 +325,13 @@ int main(int argc, char* argv[]) {
 	// affichage du pixel en blanc si la différence est suppérieur au seuil
   int n = 15 ;
   int nTailleCarre = (n*2 + 1)*(n*2 + 1) ;
-  double seuil = 0.00175 ;
+  double seuil = 0.0019 ;
 
   double difR[256], difG[256], difB[256] ;
   double difMoyenneR, difMoyenneG, difMoyenneB ;
   double sommeDifMoyennes ;
+
+  double chaleur[nW*nH];
 
 	for (int i = n; i < nH - n; i++) {
 		for (int j = n; j < nW - n; j++) {
@@ -365,6 +374,8 @@ int main(int argc, char* argv[]) {
 
       sommeDifMoyennes = difMoyenneR + difMoyenneG + difMoyenneB ;
 
+      chaleur[i*nW+j] = sommeDifMoyennes ;
+
 			// Affichage du pixel en blanc si la différence est supérieure au pourcentage du seuil
 			if (sommeDifMoyennes > seuil && pixelValide(i, j, ImgBruit, nW) == 1) {
 				ImgOut[i*nW+j] = 255 ;
@@ -375,9 +386,35 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+  double chaleurMax, chaleurMin ;
+
+  for (int i = 1; i < nH - 1 ; i++) {
+    for (int j = 1; j < nW - 1; j++) {
+      if (chaleur[i*nW+j] > chaleurMax) {
+        chaleurMax = chaleur[i*nW+j] ;
+      }
+      if (chaleur[i*nW+j] < chaleurMin) {
+        chaleurMin = chaleur[i*nW+j] ;
+      }
+    }
+  }
+
+  // expansion dynamique
+  for (int i = 1; i < nH - 1; i++) {
+    for (int j = 1; j < nW - 1; j++) {
+      if (ImgBruit[3*i*nW+3*j+2] != 0) {
+        ImgChaleur[i*nW+j] = (chaleur[i*nW+j] - chaleurMin) * (255/(chaleurMax-chaleurMin)) ;
+      } else {
+        ImgChaleur[i*nW+j] = 0 ;
+      }
+    }
+  }
+
   // Création des images
   ecrire_image_ppm(cNomImgMedian , ImgMedian,  nH, nW);
   ecrire_image_ppm(cNomImgBruit , ImgBruit,  nH, nW);
+  ecrire_image_pgm(cNomImgChaleur , ImgChaleur,  nH, nW);
+
 
   // Enchainement de dilatations et erosions pour mettre en évidence les zones
   // avec des différences de bruit importantes
@@ -421,6 +458,8 @@ int main(int argc, char* argv[]) {
   free(ImgMedian);
   free(ImgBruit);
   free(ImgOut);
+  free(ImgChaleur);
+
 
   return 0 ;
 }
