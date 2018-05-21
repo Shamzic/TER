@@ -5,9 +5,10 @@
 
 Pour compiler un programme, il faut utiliser la commande <code> make <nom du programme> </code>
 
-# Execution 
+# Exécution 
 
 Voici un exemple d'execution avec le programme de division par patchs :
+
 <code> ./main ImgIn.pgm ImgOut.ppm  nbcasesW nbcasesH seuilMoyenneHisto ImgBinaire.ppm ImgMedian.ppm ImgBruit.ppm ImgMini.ppm ImgBinFinal.ppm ImgBinTemp.ppm </code>
 
 # Rapport 
